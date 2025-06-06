@@ -23,9 +23,9 @@ from tqdm import tqdm
 
 def train_epoch(model: nn.Module, device: torch.device, train_loader: DataLoader,
                 criterion, optimizer, l1_lambda=None, scheduler=None):
-"""Train one epoch of the neural network and return the training metrics.
+    """
+    Train one epoch of the neural network and return the training metrics.
     Adapted for HybridModel which processes both features and images.
-
     Args:
         model: Neural network model to train (HybridModel)
         device: Device where training will be performed (CPU/GPU)
@@ -39,7 +39,7 @@ def train_epoch(model: nn.Module, device: torch.device, train_loader: DataLoader
         train_loss: Average loss on the training set
         train_acc: Accuracy on the training set (%)
         current_lr: Current learning rate after scheduler (if scheduler exists)
-"""
+    """
     model.train()
     train_loss = 0
     correct = 0
@@ -85,17 +85,17 @@ def train_epoch(model: nn.Module, device: torch.device, train_loader: DataLoader
 def eval_epoch(model: nn.Module, device: torch.device, val_loader: DataLoader,
                criterion):
     """  
-        Evaluates the model on the validation set for HybridModel.  
-    
-        Args:  
-            model: HybridModel to evaluate  
-            device: Device where evaluation will be performed (CPU/GPU)  
-            val_loader: DataLoader with validation data (returns target, features, images)  
-            criterion: Loss function to use  
-    
-        Returns:  
-            val_loss: Average loss on the validation set  
-            val_acc: Accuracy on the validation set (%)  
+    Evaluates the model on the validation set for HybridModel.  
+
+    Args:  
+        model: HybridModel to evaluate  
+        device: Device where evaluation will be performed (CPU/GPU)  
+        val_loader: DataLoader with validation data (returns target, features, images)  
+        criterion: Loss function to use  
+
+    Returns:  
+        val_loss: Average loss on the validation set  
+        val_acc: Accuracy on the validation set (%)  
     """  
     model.eval()
     val_loss = 0
