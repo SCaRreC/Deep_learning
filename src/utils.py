@@ -7,6 +7,13 @@ import matplotlib.pyplot as plt
 import numpy as np
 import random
 import pandas as pd
+import seaborn as sns
+import cv2
+from torchvision import transforms
+import os
+import random
+from PIL import Image
+
 
     
 # Fijamos todas las semillas aleatorias para reproducibilidad
