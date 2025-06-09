@@ -46,7 +46,6 @@ def data_processing(df_poi:object):
     empty_rows = df_poi[df_poi['categories'].str.len() == 0]
     for idx in empty_rows.index:
         df_poi.at[idx, 'categories'] = ['Cultura', 'Ocio']
-        print(df_poi.loc[idx, 'categories'])
     # One-hot encoding for. categories
     all_categories = set(cat for sublist in df_poi['categories'] for cat in sublist)
     for category in all_categories:
@@ -56,7 +55,6 @@ def data_processing(df_poi:object):
     # tags into num_tags
     df_poi['number_tags'] = df_poi['tags'].apply(len)
     df_poi.drop('tags', axis=1, inplace=True)
-    df_poi['number_tags'].hist()
 
     # images
     base_path = os.path.join('Deep_learning', 'data', 'raw')
@@ -65,6 +63,7 @@ def data_processing(df_poi:object):
     # Create 'engagement' measurement and 'engagement_score'
     df_poi['engagement'] = 0.8 * df_poi['Likes'] +  df_poi['Bookmarks'] + 0.2* df_poi['Visits'] - 0.5 * df_poi['Dislikes']
     engagement_scores = pd.qcut(df_poi['engagement'], q=3, labels=[0,1,2])
+    df_poi['engagement_score'] = engagement_scores
 
     # Drop columns with text, (we won't be using them in this model), and columns: Visits, likes, dislikes and bookmarks, as we already calculated our target score "engagement_score" with them.
     df_poi.drop(columns=['id', 'name', 'shortDescription', 'Visits', 'Likes', 'Dislikes', 'Bookmarks'], inplace=True)
