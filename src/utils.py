@@ -2,21 +2,12 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import DataLoader, TensorDataset
-import torchvision
-from sklearn.metrics import classification_report
-from sklearn.model_selection import train_test_split
+from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
 import numpy as np
-from tqdm import tqdm
 import random
 import pandas as pd
-#import torch.nn.functional as F
 
-#import random
-#import requests
-#from PIL import Image
-#from io import BytesIO
     
 # Fijamos todas las semillas aleatorias para reproducibilidad
 def set_random_seed(seed=42):
