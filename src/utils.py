@@ -73,6 +73,22 @@ def data_processing(df_poi:object):
     
     return df_poi
 
+def fit_transform_features(features):
+  """
+  Receives a DataFrame with numeric columns and returns a NumPy array
+  with standardized values (zero mean, unit variance).
+  Assumes that non-numeric or unwanted columns (e.g. image paths) are already excluded.
+  """
+  features_numeric = features.select_dtypes(include=['int64', 'float64']).copy()
+  scaler = StandardScaler()
+  X_train_scaled = scaler.fit_transform(features_numeric)
+  return scaler, X_train_scaled
+
+def transform_features(df, scaler):
+    """Transforms dataframes with a scaler already trained in the train subset."""
+    numeric = df.select_dtypes(include=['int64', 'float64']).copy()
+    X_scaled = scaler.transform(numeric)
+    return X_scaled
 #############
 # Trainning #
 #############
