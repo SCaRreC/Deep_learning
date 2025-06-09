@@ -9,7 +9,8 @@ from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import tqdm
-
+import random
+import pandas as pd
 #import torch.nn.functional as F
 
 #import random
@@ -17,6 +18,61 @@ from tqdm import tqdm
 #from PIL import Image
 #from io import BytesIO
     
+# Fijamos todas las semillas aleatorias para reproducibilidad
+def set_random_seed(seed=42):
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+    np.random.seed(seed)
+    random.seed(seed)
+
+#################
+# Data processing#
+#################
+
+def data_processing(df_poi:object):
+    """
+    Transforms raw data frame from .csv Artgonuts according to all the decisions taken in the EDA notebook 
+    to implement in other notebooks
+    Returns: 
+        transformed_df: ready to be split into train, val and test.
+    """
+    #Categoric columns tranformations
+
+    # transform content to lists
+    df_poi['categories'] = df_poi['categories'].apply(eval)
+    df_poi['tags'] = df_poi['tags'].apply(eval)
+    # Categories
+    empty_rows = df_poi[df_poi['categories'].str.len() == 0]
+    for idx in empty_rows.index:
+        df_poi.at[idx, 'categories'] = ['Cultura', 'Ocio']
+        print(df_poi.loc[idx, 'categories'])
+    # One-hot encoding for. categories
+    all_categories = set(cat for sublist in df_poi['categories'] for cat in sublist)
+    for category in all_categories:
+        df_poi[category] = df_poi['categories'].apply(lambda x: 1 if category in x else 0)
+    df_poi = df_poi.drop('categories', axis=1)
+    
+    # tags into num_tags
+    df_poi['number_tags'] = df_poi['tags'].apply(len)
+    df_poi.drop('tags', axis=1, inplace=True)
+    df_poi['number_tags'].hist()
+
+    # images
+    base_path = os.path.join('Deep_learning', 'data', 'raw')
+    df_poi['main_image_path'] = base_path + '/'+ df_poi['main_image_path']
+
+    # Create 'engagement' measurement and 'engagement_score'
+    df_poi['engagement'] = 0.8 * df_poi['Likes'] +  df_poi['Bookmarks'] + 0.2* df_poi['Visits'] - 0.5 * df_poi['Dislikes']
+    engagement_scores = pd.qcut(df_poi['engagement'], q=3, labels=[0,1,2])
+
+    # Drop columns with text, (we won't be using them in this model), and columns: Visits, likes, dislikes and bookmarks, as we already calculated our target score "engagement_score" with them.
+    df_poi.drop(columns=['id', 'name', 'shortDescription', 'Visits', 'Likes', 'Dislikes', 'Bookmarks'], inplace=True)
+    
+    return df_poi
+
 #############
 # Trainning #
 #############
