@@ -13,7 +13,7 @@ from torchvision import transforms
 import os
 import random
 from PIL import Image
-
+from sklearn.preprocessing import StandardScaler
 
     
 # Fijamos todas las semillas aleatorias para reproducibilidad
@@ -115,7 +115,7 @@ def train_epoch(model: nn.Module, device: torch.device, train_loader: DataLoader
     total = 0
 
     for batch_idx, (target, features, images) in enumerate(train_loader):
-        features, target, images = features.to(device), target.to(device), images.to(device)
+        target, features, images = target.to(device), features.to(device), images.to(device)
         
         optimizer.zero_grad()
 
@@ -174,7 +174,7 @@ def eval_epoch(model: nn.Module, device: torch.device, val_loader: DataLoader,
     with torch.no_grad():
         for target, features, images in val_loader:
             
-            features, target, images = features.to(device), target.to(device), images.to(device)
+            target, features, images = target.to(device), features.to(device), images.to(device)
 
             # Forward pass
             output = model(features, images)
@@ -191,6 +191,20 @@ def eval_epoch(model: nn.Module, device: torch.device, val_loader: DataLoader,
     val_acc = 100. * correct / total
 
     return val_loss, val_acc
+
+def evaluate_model(model, testloader, device):
+    model.eval()
+    correct = 0
+    total = 0
+    with torch.no_grad():
+        for data in testloader:
+            target, features, images = data[0].to(device), data[1].to(device), data[2].to(device)
+            outputs = model(features, images)
+            _, predicted = torch.max(outputs.data, 1)
+            total += target.size(0)
+            correct += (predicted == target).sum().item()
+    
+    return 100. * correct / total
 
 def plot_training_curves(train_losses, val_losses, train_accs, val_accs, num_epochs, test_acc=None):
     """ 
