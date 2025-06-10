@@ -7,6 +7,13 @@ import matplotlib.pyplot as plt
 import numpy as np
 import random
 import pandas as pd
+import seaborn as sns
+import cv2
+from torchvision import transforms
+import os
+import random
+from PIL import Image
+from sklearn.preprocessing import StandardScaler
 
     
 # Fijamos todas las semillas aleatorias para reproducibilidad
@@ -19,9 +26,9 @@ def set_random_seed(seed=42):
     np.random.seed(seed)
     random.seed(seed)
 
-###################
-# Data processing #
-###################
+#################
+# Data processing#
+#################
 
 def data_processing(df_poi:object):
     """
@@ -39,7 +46,6 @@ def data_processing(df_poi:object):
     empty_rows = df_poi[df_poi['categories'].str.len() == 0]
     for idx in empty_rows.index:
         df_poi.at[idx, 'categories'] = ['Cultura', 'Ocio']
-        print(df_poi.loc[idx, 'categories'])
     # One-hot encoding for. categories
     all_categories = set(cat for sublist in df_poi['categories'] for cat in sublist)
     for category in all_categories:
@@ -49,7 +55,6 @@ def data_processing(df_poi:object):
     # tags into num_tags
     df_poi['number_tags'] = df_poi['tags'].apply(len)
     df_poi.drop('tags', axis=1, inplace=True)
-    df_poi['number_tags'].hist()
 
     # images
     base_path = os.path.join('Deep_learning', 'data', 'raw')
@@ -58,6 +63,7 @@ def data_processing(df_poi:object):
     # Create 'engagement' measurement and 'engagement_score'
     df_poi['engagement'] = 0.8 * df_poi['Likes'] +  df_poi['Bookmarks'] + 0.2* df_poi['Visits'] - 0.5 * df_poi['Dislikes']
     engagement_scores = pd.qcut(df_poi['engagement'], q=3, labels=[0,1,2])
+    df_poi['engagement_score'] = engagement_scores
 
     # Drop columns with text, (we won't be using them in this model), and columns: Visits, likes, dislikes and bookmarks, as we already calculated our target score "engagement_score" with them.
     df_poi.drop(columns=['id', 'name', 'shortDescription', 'Visits', 'Likes', 'Dislikes', 'Bookmarks'], inplace=True)
@@ -80,7 +86,6 @@ def transform_features(df, scaler):
     numeric = df.select_dtypes(include=['int64', 'float64']).copy()
     X_scaled = scaler.transform(numeric)
     return X_scaled
-    
 #############
 # Trainning #
 #############
@@ -110,7 +115,7 @@ def train_epoch(model: nn.Module, device: torch.device, train_loader: DataLoader
     total = 0
 
     for batch_idx, (target, features, images) in enumerate(train_loader):
-        features, target, images = features.to(device), target.to(device), images.to(device)
+        target, features, images = target.to(device), features.to(device), images.to(device)
         
         optimizer.zero_grad()
 
@@ -169,7 +174,7 @@ def eval_epoch(model: nn.Module, device: torch.device, val_loader: DataLoader,
     with torch.no_grad():
         for target, features, images in val_loader:
             
-            features, target, images = features.to(device), target.to(device), images.to(device)
+            target, features, images = target.to(device), features.to(device), images.to(device)
 
             # Forward pass
             output = model(features, images)
@@ -186,6 +191,20 @@ def eval_epoch(model: nn.Module, device: torch.device, val_loader: DataLoader,
     val_acc = 100. * correct / total
 
     return val_loss, val_acc
+
+def evaluate_model(model, testloader, device):
+    model.eval()
+    correct = 0
+    total = 0
+    with torch.no_grad():
+        for data in testloader:
+            target, features, images = data[0].to(device), data[1].to(device), data[2].to(device)
+            outputs = model(features, images)
+            _, predicted = torch.max(outputs.data, 1)
+            total += target.size(0)
+            correct += (predicted == target).sum().item()
+    
+    return 100. * correct / total
 
 def plot_training_curves(train_losses, val_losses, train_accs, val_accs, num_epochs, test_acc=None):
     """ 
