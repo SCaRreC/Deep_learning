@@ -84,3 +84,6 @@ This repository includes everything needed to reproduce the experiment:
    ```bash
    git clone https://github.com/your_username/Deep_learning.git
    cd Deep_learning
+2. Import libraries.
+   * if utils doesn't import correctly, try mounting your drive into de notebook and loading the file utils from the drive, after downloading the file.
+3. instalar requirements.txt con pip install -r requirements.txt
